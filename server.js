@@ -26,7 +26,7 @@ app.get("/apply", (req, res) => {
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1570030593008468060";
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "3uaRlenqxMB_inqri_61jrxCqLOOELyT";
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "https://rearmc.net/auth/discord/callback";
+const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "https://www.rearmc.net/auth/discord/callback";
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const STAFF_LOGS_NAME = process.env.STAFF_LOGS_CHANNEL_NAME || "staff-application-logs";
 const MEDIA_LOGS_NAME = process.env.MEDIA_LOGS_CHANNEL_NAME || "media-application-logs";
@@ -56,8 +56,10 @@ app.get("/auth/discord", (req, res) => {
   // Use the exact redirect URI registered in Discord Dev portal:
   // If user registered https://rearmc.net/auth/discord/callback, use that
   const host = req.get("host") || "";
-  let effectiveRedirectUri = REDIRECT_URI;
+  let effectiveRedirectUri = `https://${host}/auth/discord/callback`;
   if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    effectiveRedirectUri = `http://${host}/auth/discord/callback`;
+  } else if (!host) {
     effectiveRedirectUri = REDIRECT_URI;
   }
 

@@ -34,8 +34,23 @@ const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_BOT_TOKEN
 const APPLICATIONS_CHANNEL_ID = process.env.APPLICATIONS_CHANNEL_ID || "1570277244016787476";
 const GUILD_ID = "1570043182262001664";
 
-// Simple in-memory user sessions (tokens stored in cookie)
+// Robust Serverless-Compatible Session Management
 const sessions = new Map();
+
+function serializeSession(user) {
+  return Buffer.from(JSON.stringify(user)).toString("base64");
+}
+
+function getSession(req) {
+  const raw = req.cookies.rearmc_session;
+  if (!raw) return null;
+  if (sessions.has(raw)) return sessions.get(raw);
+  try {
+    const user = JSON.parse(Buffer.from(raw, "base64").toString("utf-8"));
+    if (user && user.id) return user;
+  } catch (_) {}
+  return null;
+}
 
 // Discord OAuth2 Login URL
 app.get("/auth/discord", (req, res) => {
@@ -110,14 +125,20 @@ app.get("/auth/discord/callback", async (req, res) => {
     });
     const user = await userRes.json();
 
-    const sessionId = "sess_" + Math.random().toString(36).substring(2) + Date.now();
-    sessions.set(sessionId, {
-      ...user,
+    const userData = {
+      id: user.id,
+      username: user.username,
+      global_name: user.global_name,
+      discriminator: user.discriminator,
+      avatar: user.avatar,
       tag: user.discriminator && user.discriminator !== "0" ? `${user.username}#${user.discriminator}` : user.username,
       avatarUrl: user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` : "https://cdn.discordapp.com/embed/avatars/0.png"
-    });
+    };
 
-    res.cookie("rearmc_session", sessionId, { maxAge: 7 * 24 * 3600 * 1000, httpOnly: true, path: "/" });
+    const sessionToken = serializeSession(userData);
+    sessions.set(sessionToken, userData);
+
+    res.cookie("rearmc_session", sessionToken, { maxAge: 7 * 24 * 3600 * 1000, httpOnly: true, path: "/" });
     res.redirect(redirectTarget);
   } catch (err) {
     console.error("Auth callback error:", err);
@@ -127,19 +148,19 @@ app.get("/auth/discord/callback", async (req, res) => {
 
 // Logout
 app.get("/auth/logout", (req, res) => {
-  const sid = req.cookies.rearmc_session;
-  if (sid) sessions.delete(sid);
+  const raw = req.cookies.rearmc_session;
+  if (raw) sessions.delete(raw);
   res.clearCookie("rearmc_session");
   res.redirect("/");
 });
 
 // Current User API
 app.get("/api/user", (req, res) => {
-  const sid = req.cookies.rearmc_session;
-  if (!sid || !sessions.has(sid)) {
+  const user = getSession(req);
+  if (!user) {
     return res.json({ loggedIn: false });
   }
-  return res.json({ loggedIn: true, user: sessions.get(sid) });
+  return res.json({ loggedIn: true, user });
 });
 
 // Helper: send discord webhook/bot message
@@ -211,12 +232,10 @@ async function sendDiscordLog(type, formData, user) {
 // Submit Application
 app.post("/api/apply/:type", async (req, res) => {
   const { type } = req.params;
-  const sid = req.cookies.rearmc_session;
-  if (!sid || !sessions.has(sid)) {
+  const user = getSession(req);
+  if (!user) {
     return res.status(401).json({ error: "Please login with Discord first." });
   }
-
-  const user = sessions.get(sid);
   const formData = req.body || {};
 
   // Persist safely (non-blocking, won't crash on read-only environments like Vercel)

@@ -12,6 +12,11 @@ async function initApplyPage() {
     switchTab("staff");
   }
 
+  window.addEventListener("hashchange", () => {
+    const currentHash = window.location.hash.replace("#", "").toLowerCase();
+    switchTab(currentHash === "media" ? "media" : "staff");
+  });
+
   // Fetch logged in status
   try {
     const res = await fetch("/api/user");
@@ -25,10 +30,16 @@ async function initApplyPage() {
 
 function switchTab(tab) {
   currentTab = tab;
+  window.location.hash = tab;
   const staffBtn = document.getElementById("tabStaffBtn");
   const mediaBtn = document.getElementById("tabMediaBtn");
   const staffCard = document.getElementById("staffCard");
   const mediaCard = document.getElementById("mediaCard");
+  const loginGateBtn = document.querySelector(".btn-discord-action");
+
+  if (loginGateBtn) {
+    loginGateBtn.href = `/auth/discord?redirect=/apply%23${tab}`;
+  }
 
   if (tab === "staff") {
     staffBtn.classList.add("active");

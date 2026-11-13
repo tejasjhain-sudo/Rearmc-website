@@ -25,8 +25,8 @@ app.get("/apply", (req, res) => {
 });
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1570030593008468060";
-const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "";
-const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || `http://localhost:${PORT}/auth/discord/callback`;
+const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "3uaRlenqxMB_inqri_61jrxCqLOOELyT";
+const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "https://rearmc.net/auth/discord/callback";
 const BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const STAFF_LOGS_NAME = process.env.STAFF_LOGS_CHANNEL_NAME || "staff-application-logs";
 const MEDIA_LOGS_NAME = process.env.MEDIA_LOGS_CHANNEL_NAME || "media-application-logs";
@@ -49,7 +49,7 @@ app.get("/auth/discord", (req, res) => {
     };
     const sessionId = "demo_" + Date.now();
     sessions.set(sessionId, demoUser);
-    res.cookie("rearmc_session", sessionId, { maxAge: 7 * 24 * 3600 * 1000, httpOnly: true });
+    res.cookie("rearmc_session", sessionId, { maxAge: 7 * 24 * 3600 * 1000, httpOnly: true, path: "/" });
     return res.redirect(redirectTarget);
   }
 
@@ -112,7 +112,7 @@ app.get("/auth/discord/callback", async (req, res) => {
       avatarUrl: user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128` : "https://cdn.discordapp.com/embed/avatars/0.png"
     });
 
-    res.cookie("rearmc_session", sessionId, { maxAge: 7 * 24 * 3600 * 1000, httpOnly: true });
+    res.cookie("rearmc_session", sessionId, { maxAge: 7 * 24 * 3600 * 1000, httpOnly: true, path: "/" });
     res.redirect(redirectTarget);
   } catch (err) {
     console.error("Auth callback error:", err);
@@ -271,6 +271,10 @@ app.post("/api/apply/:type", async (req, res) => {
   return res.json({ success: true, message: "Application submitted successfully!" });
 });
 
-app.listen(PORT, () => {
-  console.log(`RearMC Web Server running at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`RearMC Web Server running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;

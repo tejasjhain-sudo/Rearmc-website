@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RearMC Network • Official Portal</title>
+  <link rel="icon" type="image/png" href="/assets/rm-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="clean-theme">
+
+  <!-- BACKGROUND MUSIC (30s Minecraft Ambient Preview with Sound Toggle) -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="/assets/minecraft-music.mp3" type="audio/mpeg" />
+  </audio>
+
+  <!-- TOP MINIMAL NAVBAR -->
+  <header class="clean-nav">
+    <div class="nav-links">
+      <a href="/" class="nav-link active">Home</a>
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#tierlist" class="nav-link">Tierlist</a>
+      <a href="#mctierlist" class="nav-link">MCTiers</a>
+      <a href="/apply" class="nav-link highlight">Apply</a>
+      <a href="https://discord.gg/rearmc" target="_blank" rel="noopener" class="nav-link">Discord</a>
+    </div>
+
+    <!-- AUDIO CONTROLLER PILL -->
+    <button class="music-pill" id="musicToggleBtn" onclick="toggleMusic()" title="Toggle Background Music">
+      <span class="music-bars">
+        <span class="bar bar1"></span>
+        <span class="bar bar2"></span>
+        <span class="bar bar3"></span>
+      </span>
+      <span id="musicStatusText">Music Playing</span>
+    </button>
+  </header>
+
+  <!-- BANANASMP PERFECTLY CENTERED HERO SECTION -->
+  <div class="hero-wrapper">
+    <div class="hero-bg-overlay"></div>
+    <div class="hero-container">
+      <!-- LEFT BUTTON: COPY IP -->
+      <button class="hero-side-btn left" id="copyIpBtn" onclick="copyServerIP()">
+        <span class="btn-circle-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </span>
+        <div class="btn-text-group">
+          <span class="btn-main-title">PLAY.REARMC.NET</span>
+          <span class="btn-sub" id="copyFeedback">Copy IP</span>
+        </div>
+      </button>
+
+      <!-- CENTER 3D REARMC HERO LOGO -->
+      <div class="hero-center-logo">
+        <img src="/assets/logo.png" alt="RearMC Logo" class="brand-hero-logo" />
+      </div>
+
+      <!-- RIGHT BUTTON: DISCORD -->
+      <a href="https://discord.gg/rearmc" target="_blank" rel="noopener" class="hero-side-btn right">
+        <div class="btn-text-group right-align">
+          <span class="btn-main-title">DISCORD SERVER</span>
+          <span class="btn-sub">Join Now</span>
+        </div>
+        <span class="btn-circle-icon discord-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <!-- MAIN PAGE CONTENT -->
+  <main class="page-container">
+
+    <!-- SERVER WELCOME STRIP WITH PLAYER SKIN -->
+    <div class="welcome-bar">
+      <div class="bar-left">
+        <img src="/assets/rm-icon.png" alt="RearMC Icon" class="bar-mini-logo" />
+        <div class="bar-text">
+          <span class="bar-server-name">RearMC Network</span>
+          <span class="bar-server-sub">Welcome to our official portal!</span>
+        </div>
+      </div>
+
+      <div class="bar-right">
+        <div class="bar-tag blue">
+          <span>Target Region</span>
+          <strong>India & Pakistan (&lt;90ms)</strong>
+        </div>
+        <div class="bar-auth-pill" id="authPill" onclick="handleAuthClick()">
+          <div class="pill-text">
+            <span class="pill-sub">Click to login</span>
+            <strong class="pill-user" id="authUserName">DISCORD</strong>
+          </div>
+          <div class="pill-avatar">
+            <img src="https://mc-heads.net/avatar/Steve/44" alt="Skin" id="authSkinImg" class="skin-avatar-img" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECRUITMENT DUAL CARDS (STAFF APPLY & MEDIA APPLY) -->
+    <div class="portal-grid">
+      <!-- STAFF APPLY CARD -->
+      <a href="/apply#staff" class="portal-card banana-card staff-card">
+        <div class="card-content">
+          <h2 class="card-title">STAFF APPLY</h2>
+          <p class="card-subtitle">Click to view</p>
+        </div>
+        <div class="card-art">
+          <img src="https://mc-heads.net/body/MHF_Guard/130" alt="Staff Guard" class="card-char-img" />
+        </div>
+      </a>
+
+      <!-- MEDIA APPLY CARD -->
+      <a href="/apply#media" class="portal-card banana-card media-card">
+        <div class="card-content">
+          <h2 class="card-title">MEDIA APPLY</h2>
+          <p class="card-subtitle">Click to view</p>
+        </div>
+        <div class="card-art">
+          <img src="https://mc-heads.net/body/MHF_Alex/130" alt="Media Creator" class="card-char-img" />
+        </div>
+      </a>
+    </div>
+
+    <!-- TIERLIST DUAL YELLOW CARDS -->
+    <div class="portal-grid" id="tierlist">
+      <!-- MC SERVER TIERLIST CARD -->
+      <a href="https://discord.gg/rearmc" target="_blank" rel="noopener" class="portal-card banana-card tierlist-card">
+        <div class="card-content">
+          <h2 class="card-title">MC SERVER TIERLIST</h2>
+          <p class="card-subtitle">Click to view</p>
+        </div>
+        <div class="card-art">
+          <img src="https://mc-heads.net/body/Technoblade/130" alt="Server Tierlist" class="card-char-img" />
+        </div>
+      </a>
+
+      <!-- OFFICIAL TIERLIST CARD -->
+      <a href="https://discord.gg/rearmc" target="_blank" rel="noopener" class="portal-card banana-card official-tier-card" id="mctierlist">
+        <div class="card-content">
+          <h2 class="card-title">OFFICIAL TIERLIST</h2>
+          <p class="card-subtitle">Click to view</p>
+        </div>
+        <div class="card-art">
+          <img src="https://mc-heads.net/body/Dream/130" alt="Official Tierlist" class="card-char-img" />
+        </div>
+      </a>
+    </div>
+
+    <!-- OFFICIAL TRAILERS / PROMO VIDEOS -->
+    <section class="section-block" id="media">
+      <div class="block-header">
+        <span class="block-label">OFFICIAL MEDIA</span>
+        <h3 class="block-title">Watch RearMC in Action</h3>
+      </div>
+
+      <div class="video-grid">
+        <div class="video-card">
+          <div class="video-responsive">
+            <iframe src="https://www.youtube-nocookie.com/embed/rOdJc6Bv3V4" title="RearMC Video 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="video-caption">RearMC Gameplay & Highlights</div>
+        </div>
+        <div class="video-card">
+          <div class="video-responsive">
+            <iframe src="https://www.youtube-nocookie.com/embed/1PslYC-DTDA" title="RearMC Video 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="video-caption">PvP Practice & Arena Montages</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NETWORK HIGHLIGHTS -->
+    <section class="section-block" id="features">
+      <div class="block-header">
+        <span class="block-label">SERVER SPECIFICATIONS</span>
+        <h3 class="block-title">Engineered for Competitive Performance</h3>
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-card">
+          <div class="spec-head">SUB-90MS ROUTING</div>
+          <p class="spec-desc">Optimized direct routing tailored specifically for India and Pakistan with minimal jitter and stable tickrate.</p>
+        </div>
+        <div class="spec-card">
+          <div class="spec-head">CUSTOM DUELS ENGINE</div>
+          <p class="spec-desc">Instantly regenerated arenas, dynamic party queues, and ranked leaderboards built for competitive practice.</p>
+        </div>
+        <div class="spec-card">
+          <div class="spec-head">OFFLINE & PREMIUM</div>
+          <p class="spec-desc">Accessible to both authentic Minecraft accounts and offline launchers with fast security-grade session auth.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="clean-footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="/assets/rm-icon.png" alt="RearMC Logo" class="footer-logo" />
+          <p>RearMC Network • Leading Practice PvP Network for India & Pakistan</p>
+        </div>
+        <div class="footer-links">
+          <a href="/">Home</a>
+          <a href="/apply#staff">Staff Application</a>
+          <a href="/apply#media">Media Application</a>
+          <a href="https://discord.gg/rearmc" target="_blank" rel="noopener">Discord</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 RearMC Network. Not an official Minecraft service. Not affiliated with Mojang or Microsoft.</p>
+      </div>
+    </footer>
+  </main>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

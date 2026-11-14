@@ -14,20 +14,37 @@ async function initAppealPage() {
 }
 
 function renderAuthState() {
-  const loginGate = document.getElementById("loginGateCard");
-  const userBar = document.getElementById("userProfileBar");
-  const appealCard = document.getElementById("appealCard");
+  const uMetaAnon = document.getElementById("uMetaAnon");
+  const uMetaLoggedIn = document.getElementById("uMetaLoggedIn");
+  const btnLoginDiscord = document.getElementById("btnLoginDiscord");
+  const btnLogout = document.getElementById("btnLogout");
+  const inputDiscordTag = document.getElementById("inputDiscordTag");
 
   if (currentUser) {
-    loginGate.style.display = "none";
-    userBar.style.display = "flex";
+    uMetaAnon.style.display = "none";
+    btnLoginDiscord.style.display = "none";
+    
+    uMetaLoggedIn.style.display = "flex";
+    btnLogout.style.display = "inline-flex";
+
     document.getElementById("userAvatar").src = currentUser.avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png";
     document.getElementById("userTag").innerText = currentUser.tag || currentUser.username;
-    appealCard.style.display = "block";
+
+    if (inputDiscordTag) {
+      inputDiscordTag.value = currentUser.tag || currentUser.username;
+      inputDiscordTag.readOnly = true;
+      inputDiscordTag.style.borderColor = "#10b981";
+    }
   } else {
-    loginGate.style.display = "block";
-    userBar.style.display = "none";
-    appealCard.style.display = "none";
+    uMetaAnon.style.display = "flex";
+    btnLoginDiscord.style.display = "inline-flex";
+    
+    uMetaLoggedIn.style.display = "none";
+    btnLogout.style.display = "none";
+
+    if (inputDiscordTag) {
+      inputDiscordTag.readOnly = false;
+    }
   }
 }
 

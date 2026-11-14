@@ -357,16 +357,23 @@ async function sendAppealDiscordLog(formData, user) {
             {
               type: 2,
               style: 3, // SUCCESS (Green)
-              label: "Approve Appeal & Create Ticket",
+              label: "Approve",
               custom_id: `app_approve_${user.id}_${GUILD_ID}_appeal`,
               emoji: { name: "✅" }
             },
             {
               type: 2,
               style: 4, // DANGER (Red)
-              label: "Decline Appeal",
+              label: "Decline",
               custom_id: `app_decline_${user.id}_appeal`,
               emoji: { name: "❌" }
+            },
+            {
+              type: 2,
+              style: 1, // PRIMARY (Blurple)
+              label: "Make Ticket with User",
+              custom_id: `app_ticket_${user.id}_${GUILD_ID}_appeal`,
+              emoji: { name: "🎫" }
             }
           ]
         }
@@ -396,11 +403,15 @@ async function sendAppealDiscordLog(formData, user) {
 
 // Submit Punishment Appeal
 app.post("/api/appeal", async (req, res) => {
-  const user = getSession(req);
-  if (!user) {
-    return res.status(401).json({ error: "Please login with Discord first." });
-  }
+  const sessionUser = getSession(req);
   const formData = req.body || {};
+
+  const user = sessionUser || {
+    id: "manual_" + Date.now(),
+    username: formData.discord_tag || formData.minecraft_ign || "Appellant",
+    tag: formData.discord_tag || "Appellant",
+    avatarUrl: "https://cdn.discordapp.com/embed/avatars/0.png"
+  };
 
   try {
     const dataDir = process.env.VERCEL ? "/tmp" : path.join(__dirname, "data");

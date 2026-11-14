@@ -407,7 +407,7 @@ app.post("/api/appeal", async (req, res) => {
   const formData = req.body || {};
 
   const user = sessionUser || {
-    id: "manual_" + Date.now(),
+    id: "manual" + Date.now(),
     username: formData.discord_tag || formData.minecraft_ign || "Appellant",
     tag: formData.discord_tag || "Appellant",
     avatarUrl: "https://cdn.discordapp.com/embed/avatars/0.png"

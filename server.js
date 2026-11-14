@@ -24,6 +24,11 @@ app.get("/apply", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "apply.html"));
 });
 
+// Route for /appeal (serves public/appeal.html)
+app.get("/appeal", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "appeal.html"));
+});
+
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1570030593008468060";
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "3uaRlenqxMB_inqri_61jrxCqLOOELyT";
 const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "https://www.rearmc.net/auth/discord/callback";
@@ -269,6 +274,163 @@ app.post("/api/apply/:type", async (req, res) => {
   }
 
   return res.json({ success: true, message: "Application submitted successfully!" });
+});
+
+let cachedAppealChannelId = null;
+
+async function getOrCreateAppealLogsChannel() {
+  if (cachedAppealChannelId) return cachedAppealChannelId;
+  try {
+    const res = await fetch(`https://discord.com/api/v10/guilds/${GUILD_ID}/channels`, {
+      headers: { Authorization: `Bot ${BOT_TOKEN}` }
+    });
+    const channels = await res.json();
+    if (Array.isArray(channels)) {
+      const existing = channels.find(c => 
+        (c.name.includes("appeal-logs") || c.name.includes("appeal")) && c.type === 0
+      );
+      if (existing) {
+        cachedAppealChannelId = existing.id;
+        return existing.id;
+      }
+
+      // If not found, find STAFF category or parent
+      const staffCategory = channels.find(c => c.type === 4 && (c.name.toLowerCase().includes("staff") || c.name.toLowerCase().includes("support")));
+      const parentId = staffCategory ? staffCategory.id : "1570277295703203991";
+
+      const createRes = await fetch(`https://discord.com/api/v10/guilds/${GUILD_ID}/channels`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bot ${BOT_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: "⚖️｜appeal-logs",
+          type: 0,
+          parent_id: parentId,
+          topic: "RearMC Punishment Appeals Log & Review"
+        })
+      });
+      const newCh = await createRes.json();
+      if (newCh && newCh.id) {
+        cachedAppealChannelId = newCh.id;
+        return newCh.id;
+      }
+    }
+  } catch (err) {
+    console.error("Error finding/creating appeal channel:", err);
+  }
+  return "1571013578570338335";
+}
+
+async function sendAppealDiscordLog(formData, user) {
+  if (!BOT_TOKEN) return false;
+  try {
+    const channelId = await getOrCreateAppealLogsChannel();
+
+    const embedFields = [
+      { name: "MINECRAFT IGN", value: `\`${formData.minecraft_ign || "N/A"}\``, inline: true },
+      { name: "PUNISHMENT TYPE", value: `\`${formData.punishment_type || "Ban"}\``, inline: true },
+      { name: "STAFF MEMBER", value: formData.staff_member || "Unknown / Console", inline: true },
+      { name: "PUNISHMENT DATE", value: formData.punishment_date || "Not specified", inline: true },
+      { name: "PUNISHMENT REASON", value: String(formData.punishment_reason || "None specified").substring(0, 1024), inline: false },
+      { name: "EXPLANATION & WHY ACCEPT", value: String(formData.appeal_reason || "None specified").substring(0, 1024), inline: false },
+      { name: "EVIDENCE / LINKS", value: String(formData.evidence || "None provided").substring(0, 1024), inline: false }
+    ];
+
+    const body = {
+      embeds: [
+        {
+          title: `⚖️ New Punishment Appeal Submitted`,
+          description: `**Appellant:** <@${user.id}> (\`${user.tag || user.username}\`)\n**User ID:** \`${user.id}\``,
+          color: 0xF5B72E,
+          fields: embedFields,
+          thumbnail: { url: user.avatarUrl || "https://cdn.discordapp.com/embed/avatars/0.png" },
+          footer: { text: "RearMC Punishment Appeal System • Review below" },
+          timestamp: new Date().toISOString()
+        }
+      ],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 3, // SUCCESS (Green)
+              label: "Approve Appeal & Create Ticket",
+              custom_id: `app_approve_${user.id}_${GUILD_ID}_appeal`,
+              emoji: { name: "✅" }
+            },
+            {
+              type: 2,
+              style: 4, // DANGER (Red)
+              label: "Decline Appeal",
+              custom_id: `app_decline_${user.id}_appeal`,
+              emoji: { name: "❌" }
+            }
+          ]
+        }
+      ]
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    const msgRes = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${BOT_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    return msgRes.ok;
+  } catch (err) {
+    console.error("Error sending appeal discord log:", err.message || err);
+    return false;
+  }
+}
+
+// Submit Punishment Appeal
+app.post("/api/appeal", async (req, res) => {
+  const user = getSession(req);
+  if (!user) {
+    return res.status(401).json({ error: "Please login with Discord first." });
+  }
+  const formData = req.body || {};
+
+  try {
+    const dataDir = process.env.VERCEL ? "/tmp" : path.join(__dirname, "data");
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    const appealFile = path.join(dataDir, "appeals.json");
+    let allAppeals = [];
+    try {
+      allAppeals = JSON.parse(fs.readFileSync(appealFile, "utf8"));
+    } catch (_) { allAppeals = []; }
+
+    allAppeals.push({
+      id: Date.now(),
+      type: "appeal",
+      user,
+      formData,
+      submittedAt: new Date().toISOString(),
+      status: "PENDING"
+    });
+    fs.writeFileSync(appealFile, JSON.stringify(allAppeals, null, 2));
+  } catch (fsErr) {
+    console.error("Storage note:", fsErr.message);
+  }
+
+  try {
+    await sendAppealDiscordLog(formData, user);
+  } catch (discordErr) {
+    console.error("Discord send error:", discordErr.message);
+  }
+
+  return res.json({ success: true, message: "Punishment appeal submitted successfully!" });
 });
 
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
